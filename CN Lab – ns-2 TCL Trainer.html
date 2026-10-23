@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>CN Lab – ns-2 TCL Trainer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg:#f5f6f4;--card:#fff;--ink:#17212b;--mut:#5b6773;--ac:#0f6b62;--ac2:#e8f2f0;--bd:#d5dad8;--warn:#b45309;--bad:#b91c1c;--ok:#15803d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#101619;--card:#182126;--ink:#e6ecef;--mut:#9aa8b1;--ac:#4fd1c0;--ac2:#1a2e2d;--bd:#2c3a40;--warn:#fbbf24;--bad:#f87171;--ok:#4ade80}}
+:root[data-theme=dark]{--bg:#101619;--card:#182126;--ink:#e6ecef;--mut:#9aa8b1;--ac:#4fd1c0;--ac2:#1a2e2d;--bd:#2c3a40;--warn:#fbbf24;--bad:#f87171;--ok:#4ade80}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,Segoe UI,sans-serif}
+main{max-width:980px;margin:0 auto;padding:14px}
+h1{font:700 22px/1.2 Georgia,serif;margin:4px 0 2px}p.s{color:var(--mut);margin:0 0 10px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px}
+.tabs button,.sub button,.bt{font:inherit;border:1px solid var(--bd);background:var(--card);color:var(--ink);border-radius:6px;padding:6px 12px;cursor:pointer;white-space:nowrap}
+.tabs button.on,.sub button.on{background:var(--ac);color:var(--bg);border-color:var(--ac)}
+.sub{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px;margin:8px 0}
+.code{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font:13px/1.45 ui-monospace,Consolas,monospace}
+td{padding:3px 8px;vertical-align:top;border-bottom:1px solid var(--bd)}td.k{white-space:pre;color:var(--ink)}td.c{color:var(--ac);font-family:system-ui,sans-serif;font-size:13px}
+pre{margin:0;font:13px/1.5 ui-monospace,Consolas,monospace;white-space:pre;overflow-x:auto}
+textarea{width:100%;min-height:260px;box-sizing:border-box;font:13px/1.5 ui-monospace,Consolas,monospace;background:var(--bg);color:var(--ink);border:1px solid var(--bd);border-radius:6px;padding:8px;tab-size:2}
+.sp{color:var(--warn)}.flow li{margin:5px 0}.flow li.d{text-decoration:line-through;opacity:.55}
+.out{background:#0c1114;color:#cfe9e4;border-radius:6px;padding:10px;min-height:60px}
+.err{border-left:4px solid var(--bad);padding:4px 10px;margin:6px 0;background:var(--card)}.good{border-left:4px solid var(--ok);padding:6px 10px}
+.warn{border-left:4px solid var(--warn);padding:4px 10px;margin:6px 0}
+label{color:var(--mut);margin-right:10px}canvas{width:100%;max-width:520px;height:140px;background:var(--card);border:1px solid var(--bd);border-radius:6px}
+code{font-family:ui-monospace,Consolas,monospace;background:var(--ac2);padding:0 4px;border-radius:3px}
+.kw{border-left:4px solid var(--ac);background:var(--ac2);padding:6px 10px;margin:6px 0;font:13px/1.5 system-ui,sans-serif;white-space:normal}#cv{height:auto;display:block;margin:8px 0}details p{margin:6px 0 0;color:var(--mut)}#cv,#dg,#xg{display:block;margin:8px 0;max-width:100%;height:auto;background:#fff}.gt{width:auto;margin:0 0 14px}.gt td{padding:1px 6px;border-bottom:0;line-height:1.35}.gt td.c{padding-left:26px}.gt tr:hover td.k,.gt tr:hover td.c{background:var(--ac2)}td.k,pre{tab-size:4}</style></head><body><main>
+<h1>CN Lab – ns-2 TCL Trainer</h1>
+<p class="s">Your pasted set has 6 programs (1–6); all are here. Code is exactly as you gave it.</p>
+<div class="tabs" id="tabs"></div><div class="sub" id="sub"></div><div id="v"></div>
+</main>
+<script>
+const R=String.raw;
+const P=[
+{t:"P1",n:"UDP + TCP drops",flow:["Create simulator ns","Open tf.tr (trace-all) and nf.nam (namtrace-all)","Colors 1 Blue, 2 Red","Create nodes n0–n3","Links: n0-n2, n1-n2 (2Mb 2ms), n2-n3 (0.4Mb 10ms), queue-limit n2 n3 5","UDP agent: fid_ 1, attach n1, Null on n3, connect","CBR: packetSize_ 512, interval_ 0.02, attach, start 0.5 / stop 4.5","TCP agent: fid_ 2 on n0, TCPSink on n3, connect","FTP: attach to tcp1, start 1.0 / stop 4.5","at 5.0 finish","proc finish (flush, close, puts, nam, exit)","$ns run","Then run Analysis.awk / grep"],
+out:["Simulation completed.","Opening NAM...","(NAM window opens)","$ awk -f analysis.awk tf.tr","TCP Dropped = 12   (sample)","UDP Dropped = 85   (sample)","TCP Received = 310 (sample)","UDP Received = 115 (sample)"]},
+{t:"P2",n:"FTP + Telnet cwnd",flow:["ns, nam file nf, trace tf, cwnd file","Colors, namtrace-all, trace-all","6 nodes n0–n5","Links; bottleneck n2-n3 0.4Mb; queue-limit 10","TCP1 fid_1: sink n5, FTP, start 1.2","TCP2 fid_2: n1→n4, Telnet, start 5.1; ftp stop 5.0","proc plotWindow (writes now & cwnd_, reschedules every 0.01)","Schedule plotWindow tcp1 at 2.0, tcp2 at 5.5","proc finish (nam + xgraph win2.tr)","at 10.0 finish; run"],
+out:["running nam...","(NAM window opens)","(xgraph window opens: cwnd vs time, FTP 2.0–5.0 s, Telnet from 5.5 s)"],graph:1},
+{t:"P3",n:"Distance Vector routing",flow:["ns, color, trace tf, nam nf, cwind file","$ns rtproto DV (distance vector)","6 nodes in a ring","Ring links 1Mb 10ms; queue-limit n1 n4 and n2 n3","duplex-link-op orient lines (nam layout)","TCP n0 → sink n4, fid_ 1, connect, FTP","rtmodel-at 1.0 down n1 n4; 3.0 up n1 n4","FTP start 0.1","proc plotWindow; start at 0.1","proc finish; at 12.0 finish; run"],
+out:["running nam...","(xgraph + NAM open: cwnd drops at 1.0 when link fails, traffic reroutes via n0-n2-n3-n5-n4, recovers after 3.0)"],graph:2},
+{t:"P4",n:"FTP file transfer",flow:["ns, trace 4.tr, nam 4.nam","Color 1 Blue","Nodes n0 (Server), n1 (Client) with labels","duplex-link 0.3Mb 10ms","TCP on n0: packetSize_ 1500","TCPSink on n1, connect","FTP attach, start 0.1 / stop 12.0","proc finish: awk 4transfer.awk, awk 4convert.awk > convert.tr, nam, xgraph","at 12.1 finish; run"],
+out:["--- SIMULATION RESULTS ---","Transmission time required to transfer the file is 11.9 seconds (sample)","Actual data sent from the server is 0.29 Mbps (sample)","Data Received by the client is 0.28 Mbps (sample)","(NAM and xgraph open)"]},
+{t:"P5",n:"Multicast (DM)",flow:["ns with -multicast on; files mcast.tr / mcast.nam","8 nodes, labels, colors","Links 1.5Mb 10ms; orient lines","mrtproto DM; allocate group1, group2","UDP0 (n0→group1, fid 1)+CBR; UDP1 (n1→group2, fid 2)+CBR","Receivers (Null) on n5, n6, n7","join-group at 1.0 … 3.5; leave-group 4.0 … 6.5","cbr start 0.5 / stop 9.5","finish at 10.0 (proc after at-line is OK); run"],
+out:["(No terminal text. NAM opens: red packets from Source 1 flood then prune; receivers get data only while joined to the group)"]},
+{t:"P6",n:"Wireless DSDV (TCP)",flow:["val(...) settings: chan, prop, netif, mac, ifq, ll, ant, x, y, ifqlen, nn, stop, rp","ns_, trace 001.tr, nam 001.nam (namtrace-all-wireless)","prop, topo load_flatgrid, create-god","node-config (adhocRouting … -macTrace ON) with \\ continuations","Loop: create nodes, random-motion 0","Loop: initial_node_pos 40","setdest for node 0 and 1 at 1.1","TCP node0 → sink node1, FTP start 1.0 / stop 18.0","Loop: reset nodes at stop; halt message; run"],
+out:["Starting Simulation...","(runs to 20 s; nodes drift apart, TCP stalls when out of range)","NS EXITING..."]}
+];
+const FILES=[
+[{n:"1.tcl",c:R`# PROGRAM 1: TCP and UDP traffic with packet drop and packet receive analysis
+set ns [new Simulator] ## Create the NS2 simulator
+set tf [open tf.tr w] ## Create a trace file called tf.tr
+$ns trace-all $tf ## Store all simulation events in tf.tr
+set nf [open nf.nam w] ## Create a NAM animation file called nf.nam
+$ns namtrace-all $nf ## Store animation information in nf.nam
+$ns color 1 Blue ## Give flow 1 the color blue
+$ns color 2 Red ## Give flow 2 the color red
+set n0 [$ns node] ## Create node 0
+set n1 [$ns node] ## Create node 1
+set n2 [$ns node] ## Create node 2
+set n3 [$ns node] ## Create node 3
+$ns duplex-link $n0 $n2 2Mb 2ms DropTail ## Connect node 0 to node 2 with 2Mb bandwidth and 2ms delay
+$ns duplex-link $n1 $n2 2Mb 2ms DropTail ## Connect node 1 to node 2 with 2Mb bandwidth and 2ms delay
+$ns duplex-link $n2 $n3 0.4Mb 10ms DropTail ## Connect node 2 to node 3 with only 0.4Mb bandwidth and 10ms delay
+$ns queue-limit $n2 $n3 5 ## Allow only 5 packets in the n2-n3 queue
+# ---------------- UDP / CBR TRAFFIC ----------------
+set udp1 [new Agent/UDP] ## Create a UDP agent for sending UDP packets
+$udp1 set fid_ 1 ## Give this UDP traffic flow ID 1
+$ns attach-agent $n1 $udp1 ## Attach the UDP sender to node 1
+set null1 [new Agent/Null] ## Create a Null agent to receive UDP packets
+$ns attach-agent $n3 $null1 ## Attach the UDP receiver to node 3
+$ns connect $udp1 $null1 ## Connect UDP sender at n1 to receiver at n3
+set cbr1 [new Application/Traffic/CBR] ## Create CBR traffic over UDP
+$cbr1 set packetSize_ 512 ## Make every CBR packet 512 bytes
+$cbr1 set interval_ 0.02 ## Send one packet every 0.02 seconds
+$cbr1 attach-agent $udp1 ## Attach CBR traffic to the UDP agent
+$ns at 0.5 "$cbr1 start" ## Start UDP/CBR traffic at 0.5 seconds
+$ns at 4.5 "$cbr1 stop" ## Stop UDP/CBR traffic at 4.5 seconds
+# ---------------- TCP / FTP TRAFFIC ----------------
+set tcp1 [new Agent/TCP] ## Create a TCP agent for reliable data transfer
+$tcp1 set fid_ 2 ## Give this TCP traffic flow ID 2
+$ns attach-agent $n0 $tcp1 ## Attach the TCP sender to node 0
+set tcpsink [new Agent/TCPSink] ## Create a TCP receiver/sink
+$ns attach-agent $n3 $tcpsink ## Attach the TCP receiver to node 3
+$ns connect $tcp1 $tcpsink ## Connect TCP sender at n0 to TCP receiver at n3
+set ftp1 [new Application/FTP] ## Create an FTP application to generate TCP traffic
+$ftp1 attach-agent $tcp1 ## Attach FTP application to the TCP agent
+$ns at 1.0 "$ftp1 start" ## Start FTP traffic at 1 second
+$ns at 4.5 "$ftp1 stop" ## Stop FTP traffic at 4.5 seconds
+$ns at 5.0 "finish" ## End the simulation at 5 seconds
+# ---------------- FINISH FUNCTION ----------------
+proc finish {} { ## Create a function to finish the simulation
+global ns tf nf ## Make simulator and files available inside this function
+$ns flush-trace ## Write all remaining events into the trace file
+close $tf ## Close the trace file
+close $nf ## Close the NAM file
+puts "Simulation completed." ## Display a message saying simulation is complete
+puts "Opening NAM..." ## Display a message before opening NAM
+exec nam nf.nam & ## Open the network animation using NAM
+exit 0 ## Exit the program successfully
+}
+$ns run ## Start the complete simulation`},
+{n:"analysis.awk",c:R`BEGIN {
+tcp_drop=0 ## Initially TCP dropped packets = 0
+udp_drop=0 ## Initially UDP dropped packets = 0
+tcp_recv=0 ## Initially TCP received packets = 0
+udp_recv=0 ## Initially UDP received packets = 0
+}
+{
+if($1 == "d" && $5 == "tcp")
+tcp_drop++ ## If TCP packet is dropped, increase TCP drop count
+if($1 == "d" && $5 == "cbr")
+udp_drop++ ## If CBR/UDP packet is dropped, increase UDP drop count
+if($1 == "r" && $5 == "tcp")
+tcp_recv++ ## If TCP packet is received, increase TCP receive count
+if($1 == "r" && $5 == "cbr")
+udp_recv++ ## If CBR/UDP packet is received, increase UDP receive count
+}
+END {
+printf("TCP Dropped = %d\n", tcp_drop) ## Display number of dropped TCP packets
+printf("UDP Dropped = %d\n", udp_drop) ## Display number of dropped UDP packets
+printf("TCP Received = %d\n", tcp_recv) ## Display number of received TCP packets
+printf("UDP Received = %d\n", udp_recv) ## Display number of received UDP packets
+}`},
+{n:"grep commands",c:R`grep "^d" tf.tr | grep -c "tcp" ## ^d = lines starting with d (drops); -c counts the tcp ones
+grep "^r" tf.tr | grep -c "tcp" ## received TCP
+grep "^d" tf.tr | grep -c "cbr" ## dropped UDP
+grep "^r" tf.tr | grep -c "cbr" ## received UDP
+awk -f analysis.awk tf.tr ## run the awk script on the trace`}],
+[{n:"2.tcl",c:R`# PROGRAM 2: FTP and Telnet traffic with TCP congestion window
+set ns [new Simulator] ## Create the NS2 simulator
+set nf [open 2.nam w] ## Create a NAM file to store animation information
+set tf [open 2.tr w] ## Create a trace file to store simulation events
+set cwind [open win2.tr w] ## Create a file to store congestion window values
+$ns color 1 Blue ## Make flow 1 blue in the animation
+$ns color 2 Red ## Make flow 2 red in the animation
+$ns namtrace-all $nf ## Record information needed by NAM
+$ns trace-all $tf ## Record all simulation events in 2.tr
+set n0 [$ns node] ## Create node 0
+set n1 [$ns node] ## Create node 1
+set n2 [$ns node] ## Create node 2
+set n3 [$ns node] ## Create node 3
+set n4 [$ns node] ## Create node 4
+set n5 [$ns node] ## Create node 5
+$ns duplex-link $n0 $n2 2Mb 2ms DropTail ## Connect n0 to n2 with 2Mb bandwidth and 2ms delay
+$ns duplex-link $n2 $n3 0.4Mb 5ms DropTail ## Connect n2 to n3 with only 0.4Mb bandwidth; this is the bottleneck
+$ns duplex-link $n1 $n2 2Mb 2ms DropTail ## Connect n1 to n2
+$ns duplex-link $n3 $n4 2Mb 2ms DropTail ## Connect n3 to n4
+$ns duplex-link $n3 $n5 2Mb 2ms DropTail ## Connect n3 to n5
+$ns queue-limit $n2 $n3 10 ## Allow a maximum of 10 packets in the n2-n3 queue
+# ---------------- TCP FLOW 1: FTP ----------------
+set tcp1 [new Agent/TCP] ## Create the TCP sender for FTP
+$tcp1 set fid_ 1 ## Give FTP traffic flow ID 1
+set sink1 [new Agent/TCPSink] ## Create the TCP receiver
+set ftp1 [new Application/FTP] ## Create an FTP application
+$ns attach-agent $n0 $tcp1 ## Attach TCP sender to node 0
+$ns attach-agent $n5 $sink1 ## Attach TCP receiver to node 5
+$ns connect $tcp1 $sink1 ## Connect node 0's TCP to node 5's TCP sink
+$ftp1 attach-agent $tcp1 ## Attach FTP to the TCP sender
+$ns at 1.2 "$ftp1 start" ## Start FTP traffic at 1.2 seconds
+# ---------------- TCP FLOW 2: TELNET ----------------
+set tcp2 [new Agent/TCP] ## Create another TCP sender for Telnet
+$tcp2 set fid_ 2 ## Give Telnet traffic flow ID 2
+set sink2 [new Agent/TCPSink] ## Create the TCP receiver for Telnet
+set telnet1 [new Application/Telnet] ## Create a Telnet application
+$ns attach-agent $n1 $tcp2 ## Attach Telnet TCP sender to node 1
+$ns attach-agent $n4 $sink2 ## Attach Telnet receiver to node 4
+$ns connect $tcp2 $sink2 ## Connect Telnet sender to its receiver
+$telnet1 attach-agent $tcp2 ## Attach Telnet application to TCP
+$ns at 5.1 "$telnet1 start" ## Start Telnet traffic at 5.1 seconds
+$ns at 5.0 "$ftp1 stop" ## Stop FTP traffic at 5 seconds
+# ---------------- RECORD TCP CONGESTION WINDOW ----------------
+proc plotWindow {tcpSource file} { ## Create a function to record congestion window
+global ns ## Allow this function to use the simulator
+set time 0.01 ## Check congestion window every 0.01 seconds
+set now [$ns now] ## Get the current simulation time
+set cwnd [$tcpSource set cwnd_] ## Get the current TCP congestion window
+puts $file "$now $cwnd" ## Save time and congestion window into the file
+$ns at [expr $now+$time] "plotWindow $tcpSource $file" ## Repeat this function after 0.01 seconds
+}
+$ns at 2.0 "plotWindow $tcp1 $cwind" ## Start recording FTP's congestion window at 2 seconds
+$ns at 5.5 "plotWindow $tcp2 $cwind" ## Start recording Telnet's congestion window at 5.5 seconds
+# ---------------- FINISH FUNCTION ----------------
+proc finish {} { ## Create a function to finish the simulation
+global ns tf nf cwind ## Make simulator and files available
+$ns flush-trace ## Write remaining trace information
+close $tf ## Close the trace file
+close $nf ## Close the NAM file
+close $cwind ## Close the congestion-window file
+puts "running nam..." ## Display message before opening NAM
+exec nam 2.nam & ## Open the network animation
+exec xgraph win2.tr & ## Open the congestion-window graph
+exit 0 ## Exit successfully
+}
+$ns at 10.0 "finish" ## Finish the simulation at 10 seconds
+$ns run ## Start the simulation`}],
+[{n:"3.tcl",c:R`# PROGRAM 3: Distance Vector Routing with Link Failure and TCP Congestion Window
+set ns [new Simulator] ## Create the NS2 simulator
+$ns color 1 Blue ## Give flow 1 the color blue in NAM
+set tf [open 3.tr w] ## Create/open 3.tr to store simulation events
+$ns trace-all $tf ## Record all network events into 3.tr
+set nf [open 3.nam w] ## Create/open 3.nam for network animation
+$ns namtrace-all $nf ## Record information required by NAM
+set cwind [open win3.tr w] ## Create/open win3.tr to store TCP congestion window values
+$ns rtproto DV ## Use Distance Vector routing protocol
+set n0 [$ns node] ## Create node 0
+set n1 [$ns node] ## Create node 1
+set n2 [$ns node] ## Create node 2
+set n3 [$ns node] ## Create node 3
+set n4 [$ns node] ## Create node 4
+set n5 [$ns node] ## Create node 5
+$ns duplex-link $n0 $n1 1Mb 10ms DropTail ## Connect node 0 and node 1 with 1Mb bandwidth and 10ms delay
+$ns duplex-link $n1 $n4 1Mb 10ms DropTail ## Connect node 1 and node 4
+$ns duplex-link $n4 $n5 1Mb 10ms DropTail ## Connect node 4 and node 5
+$ns duplex-link $n5 $n3 1Mb 10ms DropTail ## Connect node 5 and node 3
+$ns duplex-link $n3 $n2 1Mb 10ms DropTail ## Connect node 3 and node 2
+$ns duplex-link $n2 $n0 1Mb 10ms DropTail ## Connect node 2 and node 0
+$ns queue-limit $n1 $n4 10 ## Allow maximum 10 packets in the queue between node 1 and node 4
+$ns queue-limit $n2 $n3 10 ## Allow maximum 10 packets in the queue between node 2 and node 3
+$ns duplex-link-op $n0 $n1 orient right-up ## Draw the n0-n1 link upward/right in NAM
+$ns duplex-link-op $n0 $n2 orient right-down ## Draw the n0-n2 link downward/right in NAM
+$ns duplex-link-op $n1 $n4 orient right ## Draw the n1-n4 link horizontally in NAM
+$ns duplex-link-op $n2 $n3 orient right ## Draw the n2-n3 link horizontally in NAM
+$ns duplex-link-op $n4 $n5 orient right-down ## Draw the n4-n5 link downward/right in NAM
+$ns duplex-link-op $n3 $n5 orient right-up ## Draw the n3-n5 link upward/right in NAM
+set tcp0 [new Agent/TCP] ## Create a TCP agent to send data
+$ns attach-agent $n0 $tcp0 ## Attach the TCP sender to node 0
+set sink0 [new Agent/TCPSink] ## Create a TCP receiver/sink
+$ns attach-agent $n4 $sink0 ## Attach the TCP receiver to node 4
+$ns connect $tcp0 $sink0 ## Connect TCP sender at n0 to TCP receiver at n4
+$tcp0 set fid_ 1 ## Give this TCP flow the ID number 1
+set ftp0 [new Application/FTP] ## Create an FTP application to generate file-transfer traffic
+$ftp0 attach-agent $tcp0 ## Connect the FTP application to the TCP agent
+$ns rtmodel-at 1.0 down $n1 $n4 ## At 1 second, break the link between node 1 and node 4
+$ns rtmodel-at 3.0 up $n1 $n4 ## At 3 seconds, restore the link between node 1 and node 4
+$ns at 0.1 "$ftp0 start" ## Start sending FTP data at 0.1 seconds
+proc plotWindow {tcpSource file} { ## Create a function to record TCP congestion window
+global ns ## Allow this function to use the simulator
+set time 0.01 ## Check the congestion window every 0.01 seconds
+set now [$ns now] ## Get the current simulation time
+set cwnd [$tcpSource set cwnd_] ## Get the current TCP congestion window value
+puts $file "$now $cwnd" ## Save current time and congestion window into win3.tr
+$ns at [expr $now+$time] "plotWindow $tcpSource $file" ## Call this function again after 0.01 seconds
+}
+$ns at 0.1 "plotWindow $tcp0 $cwind" ## Start recording TCP congestion window at 0.1 seconds
+proc finish {} { ## Create a function to finish the simulation
+global ns tf nf cwind ## Make simulator and files available inside this function
+$ns flush-trace ## Make sure all remaining trace data is written
+close $tf ## Close the trace file 3.tr
+close $nf ## Close the NAM file 3.nam
+puts "running nam..." ## Display a message saying NAM is being opened
+exec xgraph win3.tr & ## Open the congestion-window graph using XGraph
+exec nam 3.nam & ## Open the network animation using NAM
+exit 0 ## End the program successfully
+}
+$ns at 12.0 "finish" ## Stop the simulation and call finish at 12 seconds
+$ns run ## Start/run the complete NS2 simulation`}],
+[{n:"4.tcl",c:R`# PROGRAM 4: FTP file transfer using TCP
+set ns [new Simulator] ## Create the NS2 simulator
+set tf [open 4.tr w] ## Create trace file
+$ns trace-all $tf ## Store all simulation events in the trace file
+set nf [open 4.nam w] ## Create NAM animation file
+$ns namtrace-all $nf ## Store animation information
+$ns color 1 Blue ## Make TCP flow blue
+set n0 [$ns node] ## Create node 0 = server
+set n1 [$ns node] ## Create node 1 = client
+$n0 label "Server" ## Display "Server" on node 0
+$n1 label "Client" ## Display "Client" on node 1
+$ns duplex-link $n0 $n1 0.3Mb 10ms DropTail ## Connect server and client with 0.3Mb bandwidth and 10ms delay
+set tcp [new Agent/TCP] ## Create TCP sender
+$ns attach-agent $n0 $tcp ## Attach TCP sender to server node 0
+$tcp set packetSize_ 1500 ## Set TCP packet size to 1500 bytes
+set sink [new Agent/TCPSink] ## Create TCP receiver
+$ns attach-agent $n1 $sink ## Attach receiver to client node 1
+$ns connect $tcp $sink ## Connect server TCP to client TCP sink
+set ftp [new Application/FTP] ## Create FTP application
+$ftp attach-agent $tcp ## Attach FTP to TCP
+$ns at 0.1 "$ftp start" ## Start downloading/sending FTP data at 0.1 seconds
+$ns at 12.0 "$ftp stop" ## Stop FTP at 12 seconds
+proc finish {} { ## Create function to finish simulation
+global ns tf nf ## Make simulator and files available
+$ns flush-trace ## Write remaining events to trace file
+close $tf ## Close trace file
+close $nf ## Close NAM file
+puts "--- SIMULATION RESULTS ---" ## Print a heading for results
+puts [exec awk -f 4transfer.awk 4.tr] ## Run AWK program to calculate transfer time and throughput
+exec awk -f 4convert.awk 4.tr > convert.tr ## Convert received data into time-vs-bytes format
+exec nam 4.nam & ## Open network animation
+exec xgraph convert.tr & ## Plot received data using XGraph
+exit 0 ## Exit successfully
+}
+$ns at 12.1 "finish" ## Run finish function at 12.1 seconds
+$ns run ## Start simulation`},
+{n:"4transfer.awk",c:R`BEGIN {
+sent_bytes = 0 ## Start total sent bytes at zero
+recv_bytes = 0 ## Start total received bytes at zero
+start_time = 0 ## Initially there is no start time
+end_time = 0 ## Initially there is no end time
+}
+{
+event = $1 ## Get event type from trace file
+time = $2 ## Get event time
+from = $3 ## Get source node
+to = $4 ## Get destination node
+type = $5 ## Get packet type
+packet_size = $6 ## Get packet size
+if (event == "+" && from == "0" && start_time == 0) { ## If first packet leaves server
+start_time = time ## Save its time as starting time
+}
+if (event == "+" && from == "0" && type == "tcp") { ## If a TCP packet leaves server
+sent_bytes += packet_size ## Add its size to total sent bytes
+}
+if (event == "r" && to == "1" && type == "tcp") { ## If TCP packet reaches client
+recv_bytes += packet_size ## Add its size to received bytes
+end_time = time ## Save its arrival time
+}
+}
+END {
+time_taken = end_time - start_time ## Calculate total transfer time
+if (time_taken > 0) { ## Continue only if valid time exists
+sent_throughput = (sent_bytes * 8) / (time_taken * 1000000) ## Convert sent bytes to Mbps
+recv_throughput = (recv_bytes * 8) / (time_taken * 1000000) ## Convert received bytes to Mbps
+printf "Transmission time required to transfer the file is %.6f seconds\n", time_taken ## Print transfer time
+printf "Actual data sent from the server is %.6f Mbps\n", sent_throughput ## Print sending throughput
+printf "Data Received by the client is %.6f Mbps\n", recv_throughput ## Print receiving throughput
+}
+else {
+print "No valid TCP packets were received." ## Print error if no packets were received
+}
+}`},
+{n:"4convert.awk",c:R`BEGIN {
+bytes = 0 ## Initially received bytes = zero
+}
+{
+event = $1 ## Get event type
+time = $2 ## Get event time
+from = $3 ## Get source
+to = $4 ## Get destination
+type = $5 ## Get packet type
+packet_size = $6 ## Get packet size
+if (event == "r" && to == "1" && type == "tcp") { ## If a TCP packet is received by client
+bytes += packet_size ## Add received packet size to total bytes
+printf "%.4f %.0f\n", time, bytes ## Print time and total received bytes
+}
+}`}],
+[{n:"5.tcl",c:R`# PROGRAM 5: Multicast routing
+set ns [new Simulator -multicast on] ## Create simulator with multicast support enabled
+set tf [open mcast.tr w] ## Create multicast trace file
+$ns trace-all $tf ## Record simulation events
+set fd [open mcast.nam w] ## Create NAM file
+$ns namtrace-all $fd ## Record animation information
+set n0 [$ns node] ## Create node 0
+set n1 [$ns node] ## Create node 1
+set n2 [$ns node] ## Create node 2
+set n3 [$ns node] ## Create node 3
+set n4 [$ns node] ## Create node 4
+set n5 [$ns node] ## Create node 5
+set n6 [$ns node] ## Create node 6
+set n7 [$ns node] ## Create node 7
+$n0 label "Source 1" ## Give node 0 the label Source 1
+$n1 label "Source 2" ## Give node 1 the label Source 2
+$ns color 1 red ## Make multicast flow 1 red
+$ns color 2 green ## Make multicast flow 2 green
+$n5 label "Receiver 1" ## Label node 5 as Receiver 1
+$n5 color blue ## Make receiver 1 blue
+$n6 label "Receiver 2" ## Label node 6 as Receiver 2
+$n6 color blue ## Make receiver 2 blue
+$n7 label "Receiver 3" ## Label node 7 as Receiver 3
+$n7 color blue ## Make receiver 3 blue
+$ns duplex-link $n0 $n2 1.5Mb 10ms DropTail ## Connect source 1 to router n2
+$ns duplex-link $n1 $n2 1.5Mb 10ms DropTail ## Connect source 2 to router n2
+$ns duplex-link $n2 $n3 1.5Mb 10ms DropTail ## Connect n2 to n3
+$ns duplex-link $n3 $n4 1.5Mb 10ms DropTail ## Connect n3 to n4
+$ns duplex-link $n3 $n7 1.5Mb 10ms DropTail ## Connect n3 to receiver 3
+$ns duplex-link $n4 $n5 1.5Mb 10ms DropTail ## Connect n4 to receiver 1
+$ns duplex-link $n4 $n6 1.5Mb 10ms DropTail ## Connect n4 to receiver 2
+$ns duplex-link-op $n0 $n2 orient up ## Set visual direction for n0-n2
+$ns duplex-link-op $n1 $n2 orient right ## Set visual direction for n1-n2
+$ns duplex-link-op $n2 $n3 orient up ## Set visual direction for n2-n3
+$ns duplex-link-op $n3 $n4 orient right ## Set visual direction for n3-n4
+$ns duplex-link-op $n4 $n5 orient right-up ## Set visual direction for n4-n5
+$ns duplex-link-op $n4 $n6 orient left-up ## Set visual direction for n4-n6
+$ns duplex-link-op $n3 $n7 orient up ## Set visual direction for n3-n7
+set mproto DM ## Select DM as multicast routing protocol
+set mrthandle [$ns mrtproto $mproto {}] ## Enable multicast routing using DM
+set group1 [Node allocaddr] ## Create multicast group address 1
+set group2 [Node allocaddr] ## Create multicast group address 2
+# ---------------- SOURCE 1 ----------------
+set udp0 [new Agent/UDP] ## Create UDP sender for source 1
+$udp0 set fid_ 1 ## Give source 1 flow ID 1
+$ns attach-agent $n0 $udp0 ## Attach UDP sender to source node 0
+$udp0 set dst_addr_ $group1 ## Send UDP data to multicast group 1
+$udp0 set dst_port_ 0 ## Set destination port
+set cbr1 [new Application/Traffic/CBR] ## Create constant-rate traffic for source 1
+$cbr1 attach-agent $udp0 ## Attach CBR traffic to UDP
+# ---------------- SOURCE 2 ----------------
+set udp1 [new Agent/UDP] ## Create UDP sender for source 2
+$udp1 set fid_ 2 ## Give source 2 flow ID 2
+$ns attach-agent $n1 $udp1 ## Attach UDP sender to node 1
+$udp1 set dst_addr_ $group2 ## Send UDP data to multicast group 2
+$udp1 set dst_port_ 0 ## Set destination port
+set cbr2 [new Application/Traffic/CBR] ## Create constant-rate traffic for source 2
+$cbr2 attach-agent $udp1 ## Attach CBR traffic to UDP
+# ---------------- GROUP 1 RECEIVERS ----------------
+set rcvr1 [new Agent/Null] ## Create receiver agent 1
+$ns attach-agent $n5 $rcvr1 ## Attach receiver 1 to node 5
+$ns at 1.0 "$n5 join-group $rcvr1 $group1" ## At 1 sec, node 5 joins multicast group 1
+set rcvr2 [new Agent/Null] ## Create receiver agent 2
+$ns attach-agent $n6 $rcvr2 ## Attach receiver 2 to node 6
+$ns at 1.5 "$n6 join-group $rcvr2 $group1" ## At 1.5 sec, node 6 joins group 1
+set rcvr3 [new Agent/Null] ## Create receiver agent 3
+$ns attach-agent $n7 $rcvr3 ## Attach receiver 3 to node 7
+$ns at 2.0 "$n7 join-group $rcvr3 $group1" ## At 2 sec, node 7 joins group 1
+# ---------------- GROUP 2 RECEIVERS ----------------
+set rcvr4 [new Agent/Null] ## Create receiver agent 4
+$ns attach-agent $n5 $rcvr4 ## Attach another receiver to node 5
+$ns at 2.5 "$n5 join-group $rcvr4 $group2" ## At 2.5 sec, node 5 joins group 2
+set rcvr5 [new Agent/Null] ## Create receiver agent 5
+$ns attach-agent $n6 $rcvr5 ## Attach receiver to node 6
+$ns at 3.0 "$n6 join-group $rcvr5 $group2" ## At 3 sec, node 6 joins group 2
+set rcvr6 [new Agent/Null] ## Create receiver agent 6
+$ns attach-agent $n7 $rcvr6 ## Attach receiver to node 7
+$ns at 3.5 "$n7 join-group $rcvr6 $group2" ## At 3.5 sec, node 7 joins group 2
+# ---------------- LEAVE GROUPS ----------------
+$ns at 4.0 "$n5 leave-group $rcvr1 $group1" ## At 4 sec, receiver 1 leaves group 1
+$ns at 4.5 "$n6 leave-group $rcvr2 $group1" ## At 4.5 sec, receiver 2 leaves group 1
+$ns at 5.0 "$n7 leave-group $rcvr3 $group1" ## At 5 sec, receiver 3 leaves group 1
+$ns at 5.5 "$n5 leave-group $rcvr4 $group2" ## At 5.5 sec, receiver 4 leaves group 2
+$ns at 6.0 "$n6 leave-group $rcvr5 $group2" ## At 6 sec, receiver 5 leaves group 2
+$ns at 6.5 "$n7 leave-group $rcvr6 $group2" ## At 6.5 sec, receiver 6 leaves group 2
+# ---------------- START/STOP TRAFFIC ----------------
+$ns at 0.5 "$cbr1 start" ## Start group 1 traffic at 0.5 seconds
+$ns at 9.5 "$cbr1 stop" ## Stop group 1 traffic at 9.5 seconds
+$ns at 0.5 "$cbr2 start" ## Start group 2 traffic at 0.5 seconds
+$ns at 9.5 "$cbr2 stop" ## Stop group 2 traffic at 9.5 seconds
+$ns at 10.0 "finish" ## Finish simulation at 10 seconds
+proc finish {} { ## Create function to finish simulation
+global ns tf fd ## Make simulator and files available
+$ns flush-trace ## Write remaining trace data
+close $tf ## Close trace file
+close $fd ## Close NAM file
+exec nam mcast.nam & ## Open multicast animation
+exit 0 ## Exit successfully
+}
+$ns run ## Start simulation`}],
+[{n:"6.tcl",c:R`# PROGRAM 6: Wireless network with TCP and DSDV routing
+set val(chan) Channel/WirelessChannel ## Use a wireless communication channel
+set val(prop) Propagation/TwoRayGround ## Use Two-Ray Ground propagation model
+set val(netif) Phy/WirelessPhy ## Use wireless physical-layer interface
+set val(mac) Mac/802_11 ## Use IEEE 802.11 MAC protocol
+set val(ifq) Queue/DropTail/PriQueue ## Use priority queue with DropTail
+set val(ll) LL ## Use Logical Link layer
+set val(ant) Antenna/OmniAntenna ## Use an antenna that sends signals in all directions
+set val(x) 500 ## Set wireless area width to 500
+set val(y) 500 ## Set wireless area height to 500
+set val(ifqlen) 50 ## Allow maximum 50 packets in interface queue
+set val(nn) 2 ## Create 2 wireless nodes
+set val(stop) 20.0 ## Stop simulation at 20 seconds
+set val(rp) DSDV ## Use DSDV as the routing protocol
+set ns_ [new Simulator] ## Create the wireless network simulator
+set tracefd [open 001.tr w] ## Create trace file
+$ns_ trace-all $tracefd ## Record simulation events
+set namtrace [open 001.nam w] ## Create NAM file
+$ns_ namtrace-all-wireless $namtrace $val(x) $val(y) ## Record wireless animation within 500x500 area
+set prop [new $val(prop)] ## Create the selected propagation model
+set topo [new Topography] ## Create network topography object
+$topo load_flatgrid $val(x) $val(y) ## Create a flat 500x500 wireless area
+create-god $val(nn) ## Create global information object for 2 nodes
+# ---------------- NODE CONFIGURATION ----------------
+$ns_ node-config -adhocRouting $val(rp) \ ## Configure wireless nodes to use DSDV routing
+-llType $val(ll) \ ## Use LL protocol
+-macType $val(mac) \ ## Use IEEE 802.11 MAC
+-ifqType $val(ifq) \ ## Use selected queue type
+-ifqLen $val(ifqlen) \ ## Set queue length to 50
+-antType $val(ant) \ ## Use omnidirectional antenna
+-propType $val(prop) \ ## Use Two-Ray Ground propagation
+-phyType $val(netif) \ ## Use wireless physical layer
+-channelType $val(chan) \ ## Use wireless channel
+-topoInstance $topo \ ## Use the created topology
+-agentTrace ON \ ## Enable agent-level tracing
+-routerTrace ON \ ## Enable routing-level tracing
+-macTrace ON ## Enable MAC-level tracing
+# ---------------- CREATE NODES ----------------
+for {set i 0} {$i < $val(nn)} {incr i} { ## Repeat for both wireless nodes
+set node_($i) [$ns_ node] ## Create a wireless node
+$node_($i) random-motion 0 ## Disable random movement
+}
+for {set i 0} {$i < $val(nn)} {incr i} { ## Repeat for both nodes
+$ns_ initial_node_pos $node_($i) 40 ## Set initial node position display size
+}
+# ---------------- MOVE THE NODES ----------------
+$ns_ at 1.1 "$node_(0) setdest 310.0 10.0 20.0" ## At 1.1 sec, move node 0 toward position 310,10 at speed 20
+$ns_ at 1.1 "$node_(1) setdest 10.0 310.0 20.0" ## At 1.1 sec, move node 1 toward position 10,310 at speed 20
+# ---------------- TCP CONNECTION ----------------
+set tcp0 [new Agent/TCP] ## Create TCP sender
+set sink0 [new Agent/TCPSink] ## Create TCP receiver
+$ns_ attach-agent $node_(0) $tcp0 ## Attach TCP sender to wireless node 0
+$ns_ attach-agent $node_(1) $sink0 ## Attach TCP receiver to wireless node 1
+$ns_ connect $tcp0 $sink0 ## Connect TCP sender to TCP receiver
+set ftp0 [new Application/FTP] ## Create FTP application
+$ftp0 attach-agent $tcp0 ## Attach FTP to TCP
+$ns_ at 1.0 "$ftp0 start" ## Start FTP traffic at 1 second
+$ns_ at 18.0 "$ftp0 stop" ## Stop FTP traffic at 18 seconds
+# ---------------- END SIMULATION ----------------
+for {set i 0} {$i < $val(nn) } {incr i} { ## Repeat for every wireless node
+$ns_ at $val(stop) "$node_($i) reset"; ## Reset each node at 20 seconds
+}
+$ns_ at $val(stop) "puts \"NS EXITING...\" ; $ns_ halt" ## At 20 sec, print message and stop simulator
+puts "Starting Simulation..." ## Tell the user that simulation is starting
+$ns_ run ## Run the complete wireless simulation`}]];
+P.forEach((p,i)=>p.files=FILES[i]);
+function gk(c,i){let a;
+if(/^set ns_? /.test(c))return"a:sim";
+if(/^set val\(/.test(c))return"a0:val";
+if(/^set (tf|nf|fd|cwind|tracefd|namtrace)\b/.test(c)||/trace-all|namtrace-all/.test(c))return"b:files";
+if(/^\$ns color|label|^\$n\d+ color/.test(c))return"c:look";
+if(/^set n\d+ \[\$ns node\]/.test(c))return"d:nodes";
+if(/duplex-link-op/.test(c))return"f:layout";
+if(/duplex-link|queue-limit/.test(c))return"e:links";
+if(/^\$ns rtproto/.test(c))return"g:proto";
+if(/^(set mproto|set mrthandle|set group)/.test(c))return"g:mc";
+if(/rtmodel-at/.test(c))return"h:fail";
+if(/^set (prop|topo)\b|load_flatgrid|create-god/.test(c))return"g:world";
+if(/^\$ns_? at .*"finish"/.test(c))return"z:fat";
+if(/^(proc finish|\$ns_? run)/.test(c))return"z:end";
+if(/plotWindow/.test(c))return"p:plot";
+if(/setdest/.test(c))return"m:move";
+if(a=c.match(/^\$ns_? at [\d.]+ "(\$\w+) (start|stop)"/))return"k:"+a[1].slice(1)+"t";
+if(a=c.match(/^\$ns_? at [\d.]+ "\$n\d+ (join|leave)-group \$(\w+)/))return"k:"+a[2];
+if(a=c.match(/^set (\w+) \[new (Agent|Application)/))return"k:"+a[1];
+if(a=c.match(/^\$ns_? attach-agent \S+ \$(\w+)/))return"k:"+a[1];
+if(a=c.match(/^\$ns_? connect \S+ \$(\w+)/))return"k:"+a[1];
+if((a=c.match(/^\$(\w+) (set|attach-agent)/))&&!/^(ns_?|topo)$/.test(a[1])&&!/^node_/.test(a[1]))return"k:"+a[1];
+return"u"+i}
+function ind(s){let d=0;return s.map((l,i)=>{const[c,m]=split(l),t=c.trim(),o=(t.match(/^\}+/)||[""])[0].length,cont=i>0&&/\\\s*$/.test(split(s[i-1])[0].trim())?1:0,pre="\t".repeat(Math.max(0,d-o)+cont);d+=(t.match(/\{/g)||[]).length-(t.match(/\}/g)||[]).length;return pre+t+(m?" ## "+m:"")}).join("\n")}
+function pat(c){const sts=[];let cur=null,d=0;
+c.split("\n").forEach(l=>{const k=split(l)[0];if(!cur){if(/^\s*#/.test(k)&&!/^# PROGRAM/.test(k))return;cur=[];d=0}cur.push(l);d+=(k.match(/\{/g)||[]).length-(k.match(/\}/g)||[]).length;if(d<=0&&!/\\\s*$/.test(k.trim())){sts.push(cur);cur=null}});
+const g=[],ix={};sts.forEach((s,i)=>{const k=/^# PROGRAM/.test(s[0])?"0:title":gk(split(s[0])[0].trim(),i);if(ix[k]===undefined){ix[k]=g.length;g.push([])}g[ix[k]].push(s)});
+const fa=ix["z:fat"],en=ix["z:end"];if(fa!==undefined&&en!==undefined&&fa>en){const x=g.splice(fa,1)[0];g.splice(en,0,x)}
+return g.map(b=>b.map(ind).join("\n")).join("\n\n")}
+function pata(c){const L=c.split("\n"),o=[];let d=0,x=0;
+L.forEach((l,i)=>{const[k,m]=split(l),t=k.trim(),cl0=(t.match(/^\}+/)||[""])[0].length;o.push("\t".repeat(Math.max(0,d-cl0)+x)+t+(m?" ## "+m:""));d+=(t.match(/\{/g)||[]).length-(t.match(/\}/g)||[]).length;
+if(x){x=0;const n=(L[i+1]||"").trim();if(n&&n[0]!="}")o.push("")}
+else if(/^(if|else if)\b.*\)\s*$/.test(t))x=1;
+if(d===0&&/^\}/.test(t)&&i<L.length-1)o.push("")});return o.join("\n")}
+
+const RUN=[
+{o:["tf.tr","nf.nam"],w:["1.tcl","analysis.awk (or use the grep commands)"],s:[["Create script","gedit 1.tcl"],["Run","ns 1.tcl"],["See","Terminal: Simulation completed. / Opening NAM... NAM window opens: press the play button"],["Create awk","gedit analysis.awk"],["Analyse","awk -f analysis.awk tf.tr"],["Or grep","grep \"^d\" tf.tr | grep -c \"tcp\""]]},
+{o:["2.tr","2.nam","win2.tr"],w:["2.tcl"],s:[["Create script","gedit 2.tcl"],["Run","ns 2.tcl"],["See","Terminal: running nam... NAM and xgraph (cwnd vs time) windows open"],["Open again later","nam 2.nam    xgraph win2.tr"]]},
+{o:["3.tr","3.nam","win3.tr"],w:["3.tcl"],s:[["Create script","gedit 3.tcl"],["Run","ns 3.tcl"],["See","Terminal: running nam... xgraph and NAM open; link n1-n4 goes down at 1 s, up at 3 s"],["Open again later","nam 3.nam    xgraph win3.tr"]]},
+{o:["4.tr","4.nam","convert.tr"],w:["4.tcl","4transfer.awk","4convert.awk (create BOTH before running; finish calls them)"],s:[["Create files","gedit 4.tcl    gedit 4transfer.awk    gedit 4convert.awk"],["Run","ns 4.tcl"],["See","Terminal prints --- SIMULATION RESULTS --- and 3 lines; NAM and xgraph open"],["Check data","head convert.tr"]]},
+{o:["mcast.tr","mcast.nam"],w:["5.tcl"],s:[["Create script","gedit 5.tcl"],["Run","ns 5.tcl"],["See","No terminal text; NAM opens showing red and green multicast flows"]]},
+{o:["001.tr","001.nam"],w:["6.tcl"],s:[["Create script","gedit 6.tcl"],["Run","ns 6.tcl"],["See","Terminal: Starting Simulation... then NS EXITING... (script does not open NAM)"],["Open NAM yourself","nam 001.nam"]]}];
+function runView(){const r=RUN[S.p];return `<div class="card"><b>Setup once</b><pre>sudo apt update
+sudo apt install ns2 nam xgraph
+ns -version    (or just: ns)</pre><p style="color:var(--mut)">Use nano instead of gedit if you like: nano 1.tcl, Ctrl+O Enter to save, Ctrl+X to exit.</p></div><div class="card"><b>You write (${r.w.length}):</b><pre>${esc(r.w.join("\n"))}</pre><b>ns creates after running (${r.o.length} files):</b><pre>${esc(r.o.join("\n"))}</pre><p style="color:var(--mut)">Check with: ls</p></div><div class="card"><b>Steps</b>${r.s.map((x,i)=>`<p><b>${i+1}. ${esc(x[0])}</b><br><code>${esc(x[1])}</code></p>`).join("")}</div>`}
+const LS={get(){try{return JSON.parse(localStorage.getItem("cnlab")||"{}")}catch(e){return{}}},set(o){try{localStorage.setItem("cnlab",JSON.stringify(o))}catch(e){}}};
+const cl=l=>l.replace(/\s+;?#.*$/,"").trim();
+function logView(){const db=LS.get(),key=S.p+"|"+S.f,m=((db.m&&db.m[key])||[]).slice().sort((a,b)=>b.n-a.n),v=(db.v||[]).map((x,i)=>[x,i]).filter(a=>a[0].k===key);
+return `<div class="card"><b>Mistake notebook: ${P[S.p].t} ${esc(P[S.p].files[S.f].n)}</b><p style="color:var(--mut)">Filled automatically each time you press Check. Comments are never counted.</p>${m.length?m.map(e=>`<div class="err"><code>${esc(e.e)}</code><br>you wrote: <code>${esc(e.g||"(nothing)")}</code><br>${esc(e.w)} <b>x${e.n}</b></div>`).join(""):"<p>No mistakes recorded yet.</p>"}</div><div class="card"><b>Version history</b>${v.length?v.map(a=>`<p>${new Date(a[0].t).toLocaleString()}: <b>${a[0].sc}%</b> correct, ${a[0].er} issue(s) <button class="bt" onclick="loadV(${a[1]})">Load</button></p>`).join(""):"<p>No saved attempts yet.</p>"}<button class="bt" onclick="if(confirm('Clear all history and mistakes?')){LS.set({});render()}">Clear everything</button></div>`}
+function loadV(i){const c=LS.get().v[i].code;S.v="prac";render();document.getElementById("ta").value=c}
+function chk(){
+const E=exp(P[S.p],S.f),ta=document.getElementById("ta"),U=ta.value.split("\n").map(cl).filter(x=>x&&x[0]!="#"),r=[],mk=[];let i=0,j=0,ok=0;
+while(i<U.length&&j<E.length&&r.length<10){if(U[i]===E[j]){i++;j++;ok++}
+else if(E[j+1]===U[i]){r.push(`Missing line ${j+1}: <code>${esc(E[j])}</code>`);mk.push([E[j],"","Line missing"]);j++}
+else if(U[i+1]===E[j]){r.push(`Extra line: <code>${esc(U[i])}</code>`);mk.push([U[i],"","Extra line"]);i++}
+else{const d=diag(U[i],E[j]);r.push(`Line ${i+1}: <code>${esc(U[i])}</code><br>${esc(d)}<br>Expected: <code>${sv(E[j])}</code>`);mk.push([E[j],U[i],d]);i++;j++}}
+if(!r.length&&j<E.length)r.push(`Not finished. Next line: <code>${sv(E[j])}</code>`);
+if(!r.length&&i<U.length){r.push(`Extra lines after the end: <code>${esc(U[i])}</code>`);mk.push([U[i],"","Extra line"])}
+document.getElementById("r").innerHTML=r.length?r.map(x=>`<div class="err">${x}</div>`).join(""):`<div class="good">Matches exactly. Run it in ns-2 to see the output.</div>`;
+if(ta.value.trim()){const db=LS.get(),key=S.p+"|"+S.f;db.m=db.m||{};const a=db.m[key]||[];mk.forEach(q=>{const f=a.find(z=>z.e===q[0]&&z.w===q[2]);f?(f.n++,f.g=q[1]):a.push({e:q[0],g:q[1],w:q[2],n:1})});db.m[key]=a;db.v=db.v||[];db.v.unshift({k:key,t:Date.now(),code:ta.value,sc:Math.round(100*ok/Math.max(E.length,1)),er:mk.length});db.v=db.v.slice(0,40);LS.set(db)}}
+function gen(t0,t1,wm,rt,ev){const o=[];let w=1,ss=20,st=0;const e=ev.slice();for(let t=t0;t<=t1+1e-9;t+=.01){if(e.length&&t>=e[0][0]){ss=Math.max(2,w/2);w=1;st=t+e[0][1];e.shift()}if(t>=st){if(w<ss)w+=w*.01/rt;else w+=.01/rt;if(w>=wm){ss=Math.max(2,w/2);w=1}}o.push([+t.toFixed(2),+w.toFixed(3)])}return o}
+const XC={};
+function XD(p){if(XC[p])return XC[p];let d=null;
+if(p==1){d=gen(1.2,5,13,.2,[]).filter(a=>a[0]>=2);for(let t=5.5;t<=10;t+=.01)d.push([+t.toFixed(2),+(1+(t-5.5)*1.1).toFixed(3)])}
+if(p==2)d=gen(.1,12,14,.12,[[1,.3],[3,.2]]);
+if(p==3){d=[];for(let n=0;n<480;n++)d.push([+(.12+n*.041).toFixed(4),(n+1)*1540])}
+return XC[p]=d}
+function tk(a,b,n){const r=(b-a)/n,m=Math.pow(10,Math.floor(Math.log10(r))),s=[1,2,5,10].map(k=>k*m).find(k=>k>=r),o=[];for(let v=Math.ceil(a/s-1e-9)*s;v<=b+1e-9;v+=s)o.push(+v.toFixed(6));return o}
+function xg(t){const D=XD(S.p),c=document.getElementById("xg");if(!D||!c)return;const x=c.getContext("2d"),L=62,Tp=58,Rt=400,B=220,fn=["","win2.tr","win3.tr","convert.tr"][S.p];
+x.clearRect(0,0,520,260);x.fillStyle="#d8d8d8";x.fillRect(0,0,520,260);x.font="12px sans-serif";
+["Close","Hardcopy","About..."].forEach((b,i)=>{x.fillStyle="#e6e6e6";x.fillRect(6+i*72,5,66,22);x.strokeStyle="#666";x.strokeRect(6+i*72,5,66,22);x.fillStyle="#000";x.fillText(b,12+i*72,20)});
+x.fillStyle="#fff";x.fillRect(L-30,Tp-18,Rt-L+150,B-Tp+48);x.fillStyle="#000";x.textAlign="center";x.fillText("X Graph",(L+Rt)/2,Tp-5);x.textAlign="left";
+const xs=D.map(a=>a[0]),ys=D.map(a=>a[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(0,Math.min(...ys)),y1=Math.max(...ys)*1.05,X=v=>L+(v-x0)/(x1-x0)*(Rt-L),Y=v=>B-(v-y0)/(y1-y0)*(B-Tp);
+x.strokeStyle="#000";x.strokeRect(L,Tp,Rt-L,B-Tp);x.font="10px sans-serif";
+tk(x0,x1,6).forEach(v=>{x.strokeStyle="#ddd";x.beginPath();x.moveTo(X(v),Tp);x.lineTo(X(v),B);x.stroke();x.fillStyle="#000";x.textAlign="center";x.fillText(v,X(v),B+13)});
+tk(y0,y1,6).forEach(v=>{x.strokeStyle="#ddd";x.beginPath();x.moveTo(L,Y(v));x.lineTo(Rt,Y(v));x.stroke();x.fillStyle="#000";x.textAlign="right";x.fillText(v,L-4,Y(v)+3)});
+x.textAlign="left";x.strokeStyle="#e00";x.lineWidth=1.5;x.beginPath();let f=1,lp=null;D.forEach(a=>{if(a[0]<=t){const px=X(a[0]),py=Y(a[1]);f?(x.moveTo(px,py),f=0):x.lineTo(px,py);lp=[px,py]}});x.stroke();x.lineWidth=1;if(lp){x.fillStyle="#e00";x.fillRect(lp[0]-2,lp[1]-2,5,5)}
+x.strokeStyle="#e00";x.beginPath();x.moveTo(Rt+12,Tp+8);x.lineTo(Rt+32,Tp+8);x.stroke();x.fillStyle="#000";x.fillText(fn,Rt+36,Tp+12)}
+
+const COMMON=[
+["Block pattern (same in EVERY program)","# PROGRAM title\n\nset ns [new Simulator]\n\nFILES: tf, trace-all, nf, namtrace-all\n\nLOOK: colors, labels\n\nNODES: n0, n1, ...\n\nLINKS: duplex-link lines + queue-limit\n\nLAYOUT: duplex-link-op orient\n\nONE BLOCK PER AGENT / APPLICATION, inner order:\n  set X [new ...]\n  $X set ...            (fid_, packetSize_, interval_)\n  $ns attach-agent $node $X     (agents)\n  $ns connect ...               (inside the RECEIVER block)\n  $app attach-agent $agent      (applications)\n\nTIMING block of that app: $ns at ... start / stop\n\n$ns at TIME \"finish\"\n\nproc finish { ... }\n$ns run","One blank line between blocks, none inside a block. Lines that belong to the same agent or application always sit together."],
+["Who is who (variable names)","ns / ns_   simulator (the boss): every $ns command goes to it\ntf         TRACE file (text log) .tr : open, trace-all, close\nnf / fd    NAM file (animation) .nam : open, namtrace-all, close\ncwind      cwnd data file win*.tr : open, plotWindow, close\nn0 n1 ...  nodes (hosts / routers)\nudp tcp    sending agents (sit ON a node)\nnull sink  receiving agents (sit ON a node)\ncbr ftp telnet   applications (sit ON an agent)","tf = Trace File, nf = Nam File. Check the extension: .tr means tf, .nam means nf."],
+["Spot the type from the creation line","set ns [new Simulator]          -> simulator\nset n0 [$ns node]               -> node\nset tcp [new Agent/TCP]         -> AGENT\nset ftp [new Application/FTP]   -> APPLICATION\nset tf [open x.tr w]            -> file","Agent/... = agent, Application/... = application. Nothing else decides it."],
+["The attach look-alikes: read the FIRST word","$ns attach-agent $n0 $tcp     starts with $ns   -> AGENT onto a NODE\n$ftp attach-agent $tcp         starts with an APP -> APP onto an AGENT\n$ns connect $tcp $sink         starts with $ns   -> sender AGENT to receiver AGENT\n$tcp set fid_ 1                starts with agent -> configures that agent\n$cbr set interval_ 0.02        starts with app   -> configures that app","$ns first = network-level action. Anything else first = you are configuring or attaching that one object."],
+["When to use Tab (indent)","proc finish {} {\n\tglobal ns tf nf        <- Tab: inside { }\n\t$ns flush-trace\n}\n\nfor {set i 0} {$i < 2} {incr i} {\n\tset node_($i) [$ns_ node]\n}\n\n$ns_ node-config -llType $val(ll) \\\n\t-macType $val(mac)      <- Tab: line after a backslash\n\nawk: Tab inside BEGIN { } , { } , END { } and under an if with no braces","No Tab for ordinary one-line commands. Tcl ignores indentation, so a missing Tab never breaks anything; a space after a trailing backslash does."],
+["$ or no $ ?","set tf [open x.tr w]     no $ when you CREATE (the name after set)\n$ns trace-all $tf        $ when you USE the value\n\"$ftp1 start\"             inside quotes still needs $\nproc plotWindow {tcpSource file}   no $ in the definition, $tcpSource inside","The $ goes on every use, never on the name right after set."],
+["Who writes awk / grep?","","TCL script: always you. awk files: you write them when the question asks for analysis (P1 analysis.awk, P4 4transfer.awk + 4convert.awk, and P4 finish calls them so they must exist before ns runs). grep: typed in the terminal, nothing to save. P2, P3, P5, P6 need no awk. If your lab question only says 'analyse', ask your faculty whether awk output or the script is expected."],
+["Start","set ns [new Simulator]","1 space after set, ns, new. Wireless uses ns_ . Multicast: [new Simulator -multicast on]"],
+["Files","set tf [open x.tr w]\n$ns trace-all $tf\nset nf [open x.nam w]\n$ns namtrace-all $nf","w is lowercase. trace-all vs namtrace-all."],
+["Nodes","set n0 [$ns node]","No space inside [ ]  before $ns."],
+["Link","$ns duplex-link $n0 $n1 2Mb 2ms DropTail","Value+unit are joined: 2Mb, 2ms. D and T capital in DropTail."],
+["Queue","$ns queue-limit $n2 $n3 10","Two nodes then the number."],
+["Colour","$ns color 1 Blue","Capital first letter, flow id must match fid_."],
+["UDP+CBR","set udp [new Agent/UDP]\nset null [new Agent/Null]\n$ns attach-agent $n1 $udp\n$ns attach-agent $n3 $null\n$ns connect $udp $null\nset cbr [new Application/Traffic/CBR]\n$cbr attach-agent $udp","Order: create, attach, connect, app. cbr uses attach-agent without $ns."],
+["TCP+FTP","set tcp [new Agent/TCP]\nset sink [new Agent/TCPSink]\n$ns attach-agent $n0 $tcp\n$ns attach-agent $n1 $sink\n$ns connect $tcp $sink\nset ftp [new Application/FTP]\n$ftp attach-agent $tcp","FTP/Telnet/CBR attach with $ftp attach-agent (no $ns)."],
+["Timing","$ns at 1.0 \"$ftp start\"\n$ns at 5.0 \"finish\"","Command in double quotes. start/stop lowercase."],
+["Agent var","$tcp set fid_ 1\n$tcp set packetSize_ 1500","Underscore at the END: fid_, packetSize_, interval_, cwnd_, window_."],
+["finish proc","proc finish {} {\nglobal ns tf nf\n$ns flush-trace\nclose $tf\nclose $nf\nexec nam x.nam &\nexit 0\n}","Space between finish and {} and {. & after nam, space before it."],
+["cwnd proc","proc plotWindow {tcpSource file} {\nglobal ns\nset time 0.01\nset now [$ns now]\nset cwnd [$tcpSource set cwnd_]\nputs $file \"$now $cwnd\"\n$ns at [expr $now+$time] \"plotWindow $tcpSource $file\"\n}","expr $now+$time : NO spaces around +."],
+["Run","$ns run","Always last line (except wireless ends with $ns_ run)."],
+["Awk skeleton","BEGIN { }\n{ }\nEND { printf(\"%d\\n\", n) }","$1 event, $2 time, $3 from, $4 to, $5 type, $6 size. Events: + - r d."],
+["Case rules","","Tcl is case-sensitive: $ns ≠ $NS, Simulator, DropTail, TCPSink, Agent/TCP, Application/FTP. Every variable needs $ when USED, none when SET (set tf …)."]];
+const GL=[
+["^set ","set","Sticky label: 'set tf ...' means 'call this thing tf'.","Saving a contact in your phone.","Creates a variable (handle) for an object."],
+["new Simulator","new Simulator","Opening a fresh toy playground to build your network.","A blank city map in a game.","Creates the ns-2 engine (event scheduler)."],
+["\\$ns\\b","$ns","$ means 'use the thing named'. ns is the playground boss you give orders to.","Calling the manager by name.","Reference to the simulator object; every command goes through it."],
+["open ","open ... w","Opening a notebook to write in. w = write.","Opening a Word file to save notes.","Creates the trace file where events are logged."],
+["trace-all|namtrace-all","trace-all / namtrace-all","A diary of everything that happens. The nam one is for the cartoon replay.","CCTV recording of a road.","Trace (.tr) lines: + enqueue, - dequeue, r receive, d drop. .nam feeds the animator."],
+["\\bcolor\\b","color","Painting a stream of toys one colour.","Colour-coding bus routes.","Maps flow id (fid_) to a NAM colour."],
+["\\[\\$ns node\\]","[$ns node]","Building a new kid-house. [ ] = 'do this first, give me the answer'.","Adding a house on the street.","Creates a node (host or router)."],
+["duplex-link(?!-op)","duplex-link","A two-way road between two houses; numbers = road width and length.","Two-way road with a speed limit.","Full-duplex link: bandwidth = capacity, delay = propagation delay, DropTail = queue type."],
+["DropTail","DropTail","A waiting line: when full, newcomers at the tail are turned away.","Full parking lot rejects new cars.","FIFO queue that drops arriving packets when the buffer is full."],
+["queue-limit","queue-limit","How many toys can wait in line.","Waiting room with 10 chairs.","Buffer size in packets; overflow = packet loss (congestion)."],
+["Agent/UDP","Agent/UDP","A kid who throws balls and never checks if they were caught.","Loudspeaker announcement.","UDP: connectionless, no ACK, no retransmission."],
+["Agent/Null","Agent/Null","A friend who just collects balls.","A mailbox that swallows letters.","UDP receiver; discards packets."],
+["Agent/TCP\\b","Agent/TCP","A careful kid: waits for 'got it!' and slows down if balls get lost.","Registered post with receipt.","TCP: reliable, ACKs, congestion control (cwnd)."],
+["TCPSink","Agent/TCPSink","The friend who shouts 'got it!' for each ball.","The person who signs for delivery.","TCP receiver; generates ACKs."],
+["attach-agent","attach-agent","Putting the kid inside a house so it can play from there.","Installing an app on a phone.","Binds a transport agent to a node (port)."],
+["\\$ns connect","connect","A string between two cups to make a telephone.","Dialling a call.","Pairs sender and receiver agents (end-to-end flow)."],
+["Traffic/CBR","CBR","A machine throwing one ball at a steady pace.","A dripping tap.","Constant Bit Rate source (voice/video-like)."],
+["Application/FTP","FTP","Sending a big file as fast as allowed.","Downloading a movie.","FTP: bulk data over TCP."],
+["Telnet","Telnet","Typing on a faraway computer: tiny messages now and then.","Remote terminal typing.","Interactive traffic: small random packets."],
+["fid_","fid_","A name-tag number for a stream of balls.","Bus route number.","Flow ID: ties packets to a colour and to the trace."],
+["packetSize_|interval_","packetSize_ / interval_","Size of each ball and the wait between throws.","Parcel size and lorry frequency.","Packet size (bytes); rate = size x 8 / interval."],
+["\\$ns at ","$ns at TIME \"cmd\"","An alarm clock: at this second, do this.","Scheduling a TV recording.","Event scheduler; quoted command runs at simulated time."],
+["\\b(start|stop)\\b","start / stop","Press play / pause on the sender.","Opening and closing a shop.","Starts or stops the traffic application."],
+["^proc ","proc","Teaching the computer a new trick with a name.","A reusable recipe card.","Tcl procedure: { } args, { } body."],
+["\\bglobal\\b","global","Lets the trick see things outside its room.","Taking tools from the shared toolbox.","Gives a proc access to global variables."],
+["flush-trace","flush-trace","Pour the leftover words from your pencil into the notebook.","Save before closing.","Writes buffered trace data to disk."],
+["\\bputs\\b","puts","Say it out loud on screen (or write into a file).","print() in Python.","Tcl output command."],
+["\\bexec\\b","exec","Ask the computer to start another program. & = in the background.","Double-clicking an app.","Runs external program (nam, xgraph, awk)."],
+["xgraph","xgraph","Draws a squiggly-line picture of numbers.","Stock chart.","Plots a time-vs-value data file."],
+["\\$ns(_)? run","run","The big green start button.","Pressing Start.","Starts the scheduler; scheduled events now fire."],
+["expr","expr","A calculator. No spaces around +.","Calculator app.","Tcl arithmetic."],
+["cwnd_","cwnd_","How many balls you dare throw before a reply; grows when fine, shrinks after loss.","Cars allowed on the road at once.","Congestion window: slow start, congestion avoidance, drops on loss."],
+["rtproto DV","rtproto DV","Neighbours whisper their distance to everyone; each keeps the shortest.","Asking neighbours for the shortest way to a town.","Distance Vector (Bellman-Ford); periodic updates to neighbours."],
+["rtmodel-at","rtmodel-at","Cut the road at a time, mend it later.","Road closed for repair.","Scheduled link down/up; triggers DV reconvergence."],
+["orient","orient","Where to draw the road in the cartoon.","Placing a house on a map.","NAM layout only; no effect on routing."],
+["multicast on","-multicast on","A switch that lets one shout reach a whole group.","A radio station.","Enables multicast in ns."],
+["mrtproto","mrtproto DM","Dense Mode: shout to everyone first, then uninterested branches say 'stop'.","Magazine delivered only to subscribers.","Multicast routing: flood and prune."],
+["allocaddr","Node allocaddr","Getting a new group phone number.","A WhatsApp group.","Allocates a class D multicast address."],
+["join-group|leave-group","join / leave-group","Joining or leaving the club.","Subscribe / unsubscribe.","Group membership (IGMP idea)."],
+["dst_addr_|dst_port_","dst_addr_ / dst_port_","Address on the envelope and room number.","Postal address + flat number.","Destination IP (group) and port."],
+["BEGIN|END","awk BEGIN / END","BEGIN: get ready. END: tell the answer.","Counting votes, then announcing.","awk phases before/after reading trace lines."],
+["\\$[1-6]\\b|event =|type =","$1..$6","Columns of a diary line: event, time, from, to, type, size.","Excel columns.","Trace fields: event, time, src, dst, pkt type, size."],
+["printf","printf","Print using a template.","Filling a form.","Formatted output (%d int, %f float)."],
+["grep","grep","Magnifying glass for lines with a word. ^d = lines starting with d.","Ctrl+F.","Filters the trace (d = dropped, r = received)."],
+["Channel/Wireless|TwoRayGround|Mac/802_11|Phy/","wireless settings","Choosing the air, the ears and the talking rules for walkie-talkies.","Choosing Wi-Fi type.","Radio channel, propagation model, 802.11 MAC, PHY."],
+["DSDV","DSDV","Everyone keeps a route table and refreshes it with numbered updates.","Daily bus timetable.","Destination-Sequenced Distance Vector: proactive ad-hoc routing."],
+["node-config","node-config","Setting up how every walkie-talkie works.","Phone settings.","Configures routing, MAC, queue, antenna."],
+["create-god","create-god","A boss who knows where everyone is.","GPS server.","General Operations Director: topology info."],
+["setdest","setdest","Walk to this spot at this speed.","Navigation destination.","Mobility: x y speed(m/s)."],
+["\\bfor \\{|incr","for / incr","Repeat, counting up.","Counting laps.","Tcl loop; incr i adds 1."],
+["halt","halt","Stop the game.","Shutdown.","Ends the simulation."]];
+const VIVA=[
+[["TCP vs UDP?","TCP: connection-oriented, reliable (ACK, retransmit), congestion control. UDP: connectionless, no ACK, no retransmission, lower overhead."],["Why are packets dropped here?","Inputs are 2Mb but n2-n3 is only 0.4Mb with queue-limit 5, so the queue overflows (congestion) and DropTail discards new packets."],["Which awk field is the event and the packet type?","$1 event (+ - r d), $5 packet type. cbr = UDP traffic, tcp = TCP."],["What do fid_ and $ns color do?","fid_ tags the flow; color maps that id to a NAM colour."],["Why does UDP lose more than TCP?","TCP reduces cwnd after loss; UDP keeps sending at a constant rate."]],
+[["FTP vs Telnet?","FTP: bulk transfer, large packets. Telnet: interactive, small random packets."],["What is cwnd?","Congestion window: how much unacknowledged data TCP may send. It grows in slow start and congestion avoidance and shrinks on loss."],["How does plotWindow work?","It reads cwnd_, writes 'time cwnd' to a file and reschedules itself every 0.01 s with $ns at."],["Where is the bottleneck?","n2-n3 (0.4Mb) with queue-limit 10."],["What is slow start?","cwnd starts at 1 and doubles each RTT until ssthresh, then grows linearly."]],
+[["What is Distance Vector routing?","Each router shares its distance table with neighbours; Bellman-Ford picks the least cost."],["What does rtmodel-at do?","Schedules a link going down or up, here n1-n4 down at 1.0 and up at 3.0."],["What happens to cwnd at 1.0?","Packets are lost, timeout, cwnd falls to 1 and slow start restarts; traffic reroutes via n0-n2-n3-n5-n4."],["Problem with DV?","Count-to-infinity and slow convergence; fixed by split horizon, poison reverse."],["Why is the cwnd plotted?","To show TCP reacting to the failure and recovery."]],
+[["How is throughput calculated?","bytes x 8 / (time taken x 1,000,000) = Mbps."],["Why time = end_time - start_time?","start = first enqueue at the server, end = last receive at the client."],["Time to send 10 MB at 0.3 Mb/s?","About 10x8/0.3 = 267 s, so the 12 s run moves only a fraction; extend the stop time to finish the file."],["What does 4convert.awk produce?","'time cumulative-bytes' lines for xgraph."],["Why puts [exec awk ...]?","exec runs awk and returns its output; puts prints it."]],
+[["Unicast vs multicast?","Unicast: one receiver. Multicast: one copy per link to a group of receivers."],["What is Dense Mode?","Flood-and-prune: data goes everywhere, branches without members are pruned."],["Multicast address range?","Class D 224.0.0.0 - 239.255.255.255."],["What do join-group and leave-group do?","Add/remove a receiver from a group (IGMP concept)."],["Why two groups?","To show different sources/receivers, each tree separate."]],
+[["What is DSDV?","Proactive ad-hoc routing with sequence numbers to avoid loops."],["Why does TCP stop later?","Nodes move apart beyond radio range (TwoRayGround, about 250 m), so packets are lost."],["What does create-god do?","Creates the General Operations Director holding global topology info."],["Meaning of setdest x y speed?","Move the node to (x,y) at speed m/s."],["Why random-motion 0?","Turns off random movement; only setdest moves nodes."]]];
+const R5=[[0,2,3,4,5],[0,2,3,4,6],[0,2,3,7]];
+const TP=[
+{N:[[70,60],[70,200],[220,130],[440,130]],L:[[0,2,"2Mb 2ms"],[1,2,"2Mb 2ms"],[2,3,"0.4Mb 10ms"]],F:[{p:[1,2,3],c:"#2563eb",s:.5,e:4.5,iv:.07,d:35},{p:[0,2,3],c:"#dc2626",s:1,e:4.5,iv:.15,t:1,d:20}],T:5},
+{N:[[60,60],[60,200],[170,130],[300,130],[440,60],[440,200]],L:[[0,2,"2Mb 2ms"],[1,2,"2Mb 2ms"],[2,3,"0.4Mb 5ms"],[3,4,"2Mb 2ms"],[3,5,"2Mb 2ms"]],F:[{p:[0,2,3,5],c:"#2563eb",s:1.2,e:5,iv:.15,t:1,d:10},{p:[1,2,3,4],c:"#dc2626",s:5.1,e:10,iv:.5,t:1}],T:10},
+{N:[[50,130],[170,50],[170,210],[340,210],[340,50],[470,130]],L:[[0,1,"1Mb 10ms"],[1,4,"1Mb 10ms"],[4,5,"1Mb 10ms"],[5,3,"1Mb 10ms"],[3,2,"1Mb 10ms"],[2,0,"1Mb 10ms"]],D:[[1,4,1,3]],F:[{p:[0,1,4],c:"#2563eb",s:.1,e:1,iv:.2,t:1},{p:[0,2,3,5,4],c:"#2563eb",s:1.1,e:3,iv:.25,t:1},{p:[0,1,4],c:"#2563eb",s:3.1,e:12,iv:.2,t:1}],T:12},
+{N:[[100,130],[420,130]],lb:["Server","Client"],L:[[0,1,"0.3Mb 10ms"]],F:[{p:[0,1],c:"#2563eb",s:.1,e:12,iv:.3,t:1}],T:12.1},
+{N:[[60,230],[200,230],[130,170],[130,110],[260,110],[360,50],[210,40],[130,40]],lb:{0:"Source 1",1:"Source 2",5:"Receiver 1",6:"Receiver 2",7:"Receiver 3"},rc:[5,6,7],L:[[0,2],[1,2],[2,3],[3,4],[3,7],[4,5],[4,6]],F:[{p:[0,2,3],c:"#dc2626",s:.5,e:1,iv:.3},{p:[1,2,3],c:"#16a34a",s:.5,e:2.5,iv:.3},...R5.map((p,i)=>({p,c:"#dc2626",s:1+i*.5,e:4+i*.5,iv:.3})),...R5.map((p,i)=>({p:[1,...p.slice(1)],c:"#16a34a",s:2.5+i*.5,e:5.5+i*.5,iv:.3}))],T:10},
+{mv:t=>{const m=Math.max(0,t-1.1)*20;return[[Math.min(310,10+m),10],[10,Math.min(310,12+m)]]},lb:["node 0","node 1"],L:[[0,1]],F:[{p:[0,1],c:"#2563eb",s:1,e:18,iv:.2,t:1}],T:20}];
+let raf;
+const wd=(T,t)=>{const a=T.mv(t);return Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])};
+const pt=(f,NP,u)=>{const i=Math.min(Math.floor(u),f.p.length-2),r=u-i,a=NP[f.p[i]],b=NP[f.p[i+1]];return[a[0]+(b[0]-a[0])*r,a[1]+(b[1]-a[1])*r]};
+function frame(t,id){id=id||"cv";
+const T=TP[S.p],x=document.getElementById(id).getContext("2d"),cs=getComputedStyle(document.documentElement),ink="#111",mut="#666",bg="#fff";
+x.clearRect(0,0,520,260);
+const NP=T.mv?T.mv(t).map(p=>[p[0]*.52+130,p[1]*.52]):T.N;
+const down=(a,b)=>(T.D||[]).some(d=>d[0]==a&&d[1]==b&&t>=d[2]&&t<d[3])||(T.mv&&wd(T,t)>=250);
+x.lineWidth=2;
+if(T.mv){x.strokeStyle=mut;x.setLineDash([3,4]);NP.forEach(p=>{x.beginPath();x.arc(p[0],p[1],130,0,7);x.stroke()})}
+T.L.forEach(([a,b,l])=>{const dn=down(a,b);x.strokeStyle=dn?"#dc2626":mut;x.setLineDash(dn?[6,5]:[]);x.beginPath();x.moveTo(NP[a][0],NP[a][1]);x.lineTo(NP[b][0],NP[b][1]);x.stroke();if(l){x.fillStyle=mut;x.font="10px system-ui";x.fillText(l,(NP[a][0]+NP[b][0])/2+4,(NP[a][1]+NP[b][1])/2-5)}});
+x.setLineDash([]);
+T.F.forEach(f=>{if(t<f.s)return;const h=f.p.length-1,tr=h*.25;
+for(let k=Math.floor((Math.min(t,f.e)-f.s)/f.iv);k>=0;k--){const ts=f.s+k*f.iv,ag=t-ts;if(ag>tr*2)break;
+if(T.mv&&wd(T,ts)>=250)continue;
+const dr=f.d&&(k*37%100)<f.d;let u=ag/tr*h,ack=false;
+if(dr){if(u>h-.5){if(ag<tr+.25){const q=pt(f,NP,h-.5);x.fillStyle="#dc2626";x.font="12px system-ui";x.fillText("✕",q[0]-4,q[1]+4)}continue}}
+else if(ag>tr){if(!f.t)continue;u=(2*tr-ag)/tr*h;ack=true}
+const q=pt(f,NP,u);x.fillStyle=ack?mut:f.c;x.fillRect(q[0]-3,q[1]-3,ack?4:7,ack?4:7)}});
+NP.forEach((p,i)=>{x.fillStyle=bg;x.strokeStyle=(T.rc&&T.rc.includes(i))?"#2563eb":ink;x.lineWidth=2;x.beginPath();x.arc(p[0],p[1],12,0,7);x.fill();x.stroke();x.fillStyle=ink;x.font="11px system-ui";x.textAlign="center";x.fillText(i,p[0],p[1]+4);const lb=T.lb&&T.lb[i];if(lb)x.fillText(lb,p[0],p[1]-18);});
+x.textAlign="left"}
+function explain(f){let h='<div class="card code"><p style="margin:0 0 6px;color:var(--mut)">Tap any line for kid-level, real-world and CN explanation. Each block is aligned on its own.</p>',i=0;
+f.c.split("\n\n").forEach(g=>{h+='<table class="gt">';g.split("\n").forEach(l=>{const c=split(l)[0],m=split(l)[1],k=i++;h+=`<tr style="cursor:pointer" onclick="S.sel=S.sel===${k}?-1:${k};render()"><td class="k">${sv(c)}</td><td class="c">${esc(m)}</td></tr>`;
+if(S.sel===k){const q=GL.filter(e=>new RegExp(e[0]).test(c.trim()));h+=`<tr><td colspan="2">${q.length?q.map(e=>`<div class="kw"><b>${esc(e[1])}</b><br>Kid: ${esc(e[2])}<br>Real world: ${esc(e[3])}<br>CN term: ${esc(e[4])}</div>`).join(""):'<div class="kw">Comment or plain syntax line (brace, backslash, awk assignment).</div>'}</td></tr>`}});h+="</table>"});return h+"</div>"}
+function runSim(){const p=P[S.p],o=document.getElementById("o");o.textContent="";clearTimeout(tm);cancelAnimationFrame(raf);const T=TP[S.p],sp=+document.getElementById("sp").value;let i=0,st=0,last=performance.now();
+(function n(){if(i<p.out.length){o.textContent+=p.out[i++]+"\n";tm=setTimeout(n,600/sp)}})();
+(function lp(now){st=Math.min(T.T,st+(now-last)/1000*sp);last=now;frame(st);xg(st);document.getElementById("tm").textContent=st.toFixed(2)+" s";if(st<T.T)raf=requestAnimationFrame(lp);})(last)}
+
+const esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const split=l=>{const i=l.indexOf(" ## ");return i<0?[l,""]:[l.slice(0,i),l.slice(i+4)]};
+const S={p:0,v:"explain",f:0,sp:false,done:{},sel:-1};
+const tabs=document.getElementById("tabs"),sub=document.getElementById("sub"),V=document.getElementById("v");
+const dgm=f=>f.n.endsWith('.tcl')?'<div class="card"><b>Topology: draw this first</b><canvas id="dg" width="520" height="260"></canvas></div>':'';
+const SUBS=[["explain","Explain"],["flow","Flow"],["exam","Exam code"],["sim","Simulate"],["prac","Practice"],["log","My log"],["run","Run (Linux)"],["viva","Viva Qs"]];
+function sv(t){return S.sp?esc(t).replace(/ /g,'<span class="sp">·</span>'):esc(t)}
+function exp(p,f){return p.files[f].c.split("\n").map(l=>split(l)[0].trim()).filter(x=>x&&x[0]!="#")}
+function render(){render0();const d=document.getElementById('dg');if(d)frame(0,'dg')}
+function render0(){cancelAnimationFrame(raf);
+tabs.innerHTML=P.map((p,i)=>`<button class="${S.p===i?'on':''}" onclick="S.p=${i};S.f=0;S.sel=-1;render()">${p.t} ${p.n}</button>`).join("")+`<button class="${S.p===99?'on':''}" onclick="S.p=99;render()">Common syntax</button>`;
+if(S.p===99){sub.innerHTML="";V.innerHTML=COMMON.map(c=>`<div class="card"><b>${c[0]}</b>${c[1]?`<pre>${esc(c[1])}</pre>`:""}<div style="color:var(--mut)">${esc(c[2])}</div></div>`).join("")+`<div class="card"><b>Try the error corrector</b><div style="margin:6px 0">Use the Practice tab in any program. It checks case, spaces, missing $, brackets and quotes.</div></div>`;return}
+const p=P[S.p];
+sub.innerHTML=SUBS.map(s=>`<button class="${S.v===s[0]?'on':''}" onclick="S.v='${s[0]}';render()">${s[1]}</button>`).join("")+`<label><input type="checkbox" ${S.sp?'checked':''} onchange="S.sp=this.checked;render()"> show spaces (·)</label>`;
+const fs=p.files.length>1?`<div class="sub">${p.files.map((f,i)=>`<button class="${S.f===i?'on':''}" onclick="S.f=${i};S.sel=-1;render()">${f.n}</button>`).join("")}</div>`:"";
+const nt=p.note?`<div class="warn">${p.note}</div>`:"";
+const f=p.files[S.f];
+if(S.v==="explain")V.innerHTML=nt+fs+dgm(f)+explain(f);
+else if(S.v==="exam")V.innerHTML=nt+fs+dgm(f)+`<div class="card"><pre>${f.c.split("\n").map(l=>sv(split(l)[0])).join("\n")}</pre></div>`;
+else if(S.v==="flow")V.innerHTML=`<div class="card"><p>Tick each step as you recall it. Click to cross off.</p><ol class="flow">${p.flow.map((s,i)=>`<li class="${S.done[S.p+'_'+i]?'d':''}" onclick="S.done['${S.p}_${i}']=!S.done['${S.p}_${i}'];render()" style="cursor:pointer">${esc(s)}</li>`).join("")}</ol></div>`;
+else if(S.v==="sim"){V.innerHTML=`<div class="card"><button class="bt" onclick="runSim()">Run simulation</button> <label>speed <select id="sp"><option value=".5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option></select></label> time <b id="tm">0.00 s</b><canvas id="cv" width="520" height="260"></canvas><p style="color:var(--mut)">NAM-style view: squares are packets (flow colour; grey = ACK), red x = dropped, red dashed = link down. Terminal numbers marked (sample) are illustrative.</p><div class="out"><pre id="o"></pre></div>${[1,2,3].includes(S.p)?'<canvas id="xg" width="520" height="260"></canvas>':''}</div>`;frame(0);xg(0)}
+else if(S.v==="viva")V.innerHTML=VIVA[S.p].map(q=>`<details class="card"><summary><b>${esc(q[0])}</b></summary><p>${esc(q[1])}</p></details>`).join("");
+else if(S.v==="log")V.innerHTML=fs+logView();
+else if(S.v==="run")V.innerHTML=runView();
+else V.innerHTML=nt+fs+dgm(f)+`<div class="card"><p>Type <b>${f.n}</b> from memory. Spaces and case count.</p><textarea id="ta" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="Start typing..."></textarea><div style="margin-top:8px"><button class="bt" onclick="chk()">Check my code</button> <button class="bt" onclick="hint()">Next line hint</button> <button class="bt" onclick="document.getElementById('ta').value='';document.getElementById('r').innerHTML=''">Clear</button></div><div id="r"></div></div>`;
+}
+let tm;
+function diag(u,e){
+if(u.toLowerCase()===e.toLowerCase())return"Case mismatch. Tcl is case-sensitive.";
+if(u.replace(/\s+/g,"")===e.replace(/\s+/g,""))return"Spacing is wrong (a space is missing, extra, or in the wrong place).";
+const d=s=>(s.match(/\$/g)||[]).length;if(d(u)<d(e))return"A $ is missing (use $ when reading a variable).";if(d(u)>d(e))return"Extra $ (don't use $ when setting a variable).";
+for(const[a,b]of[["{","}"],["[","]"],["(",")"]]){const ca=(u.split(a).length-1)-(u.split(b).length-1);if(ca>0)return`Unclosed ${a}: missing ${b}.`;if(ca<0)return`Extra ${b}.`}
+if((u.match(/"/g)||[]).length%2)return"Unclosed double quote.";
+if(u.endsWith("\\")!==e.endsWith("\\"))return"Line-continuation backslash \\ mismatch (must be last character).";
+const uw=u.split(/\s+/),ew=e.split(/\s+/);for(let i=0;i<Math.max(uw.length,ew.length);i++)if(uw[i]!==ew[i])return`Word ${i+1}: you wrote "${uw[i]||"(nothing)"}", expected "${ew[i]||"(nothing)"}".`;
+return"Line differs from the expected line."}
+function hint(){const E=exp(P[S.p],S.f),U=document.getElementById("ta").value.split("\n").map(cl).filter(x=>x&&x[0]!="#");let k=0;while(k<U.length&&U[k]===E[k])k++;
+document.getElementById("r").innerHTML=k>=E.length?`<div class="good">All lines done.</div>`:`<div class="warn">${k<U.length?`Line ${k+1} is not right yet. `:""}Next: <code>${sv(E[k])}</code></div>`}
+P.forEach(p=>p.files.forEach(f=>{f.c=f.n.endsWith(".tcl")?pat(f.c):f.n.endsWith(".awk")?pata(f.c):f.c}));
+render();
+</script></body></html>
